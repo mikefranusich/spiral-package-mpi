@@ -8,7 +8,7 @@ Class(MPICUDACodeGenMixin, rec(
 
 
 Class(MPICUDAUnparserMixin, rec(
-    mpi_rcperm := (self, o, i, is) >> Print(Blanks(i), "fftx_mpi_rcperm", self.pinfix(o.args, ", "), ";\n")  
+    mpi_rcperm := (self, o, i, is) >> Print(Blanks(i), "fftx_mpi_rcperm", self.pinfix(o.args{[1,2,4,7]}, ", "), ";\n")  
 ));
 
 
