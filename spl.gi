@@ -2,6 +2,16 @@ Import(paradigms.smp);
 
 Class(fCubeTranspose, PermClass, rec(
     domain := self >> self.params[1],
+    range  := self >> self.params[1], 
+    def    := (N, stage, cube) -> rec(),
+    lambda := self >> let(i := Ind(self.params[1]), errExp(TInt)),
+    transpose := self >> self,
+    isIdentity := True
+));
+
+
+Class(fCubeEmbed, PermClass, rec(
+    domain := self >> self.params[3][1],
     range  := self >> self.params[1],
     def    := (N, stage, cube) -> rec(),
     lambda := self >> let(i := Ind(self.params[1]), errExp(TInt)),
@@ -9,11 +19,14 @@ Class(fCubeTranspose, PermClass, rec(
     isIdentity := True
 ));
 
-Class(MPIPrm, Prm);
+Class(MPIPrm, Prm,
+ rec(
+        dims := self >> let([self.func.range(), self.func.domain()])
+));
 
 Class(MPIRCPrm, Prm,
     rec(
-        dims := self >> 2*Replicate(2, self.func.params[1])
+       dims := self >> let(2*[self.func.range(), self.func.domain()])
 ));
 
 Declare(MPITensor);

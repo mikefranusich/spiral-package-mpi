@@ -29,15 +29,15 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
                    opts.operations := rec(Print := s -> Print("<MPI Distributed FFT/CUDA Device options>"));
 
                    opts.tags := self.tags::opts.tags;
-                   opts.breakdownRules.TTensorI := [IxA_MPI, IxA_base]::opts.breakdownRules.TTensorI;
+                   opts.breakdownRules.TTensorI := [IxA_MPI, IxA_base, AxI_MPI, L_IxA_MPI, LL_IxA_MPI, fftx.platforms.cuda.L_IxA_SIMT, fftx.platforms.cuda.IxA_SIMT]::opts.breakdownRules.TTensorI;
                    opts.breakdownRules.TTensorII := [batch_cuFFT_cuberot_3D];
                    opts.breakdownRules.TRC := [CopyFields(TRC_tag, rec(applicable := True))];
                    opts.breakdownRules.TPrm := [TPrm_MPI];
                    
-                   opts.breakdownRules.MDDFT := When(Length(self.copts) > 0 and IsRec(self.copts[1]) and IsBound(self.copts[1].useCUFFT) and self.copts[1].useCUFFT, 
-                       [ MDDFT_tSPL_pencil_cuFFT_MPI ], [ MDDFT_tSPL_pencil ]);
+#                   opts.breakdownRules.MDDFT := When(Length(self.copts) > 0 and IsRec(self.copts[1]) and IsBound(self.copts[1].useCUFFT) and self.copts[1].useCUFFT, 
+#                       [ MDDFT_tSPL_pencil_cuFFT_MPI ], [ MDDFT_tSPL_pencil ]);
                    
-                   opts.includes := [ "\"include/fftx_mpi_int.h\"" ];
+                   opts.includes := [ "\"fftx_mpi_int.h\"","\"mddft.h\"","\"device_macros.h\"" ];
                    opts.preProcess := (self, t) >> RulesMPIPromoteNT(t);
                    
                    opts.preProcess := t -> ApplyStrategy(t, 
