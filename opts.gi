@@ -20,6 +20,27 @@ Class(MPIDefaultConf, LocalConfig, rec(
     tags := []
 ));
 
+    new_decl := meth(self,o,i,is)
+            local arrays, other, l, arri, myMem;
+   	     [arrays, other] := SplitBy(o.vars, x->IsArray(x.t));
+	     DoForAll(arrays, v -> Print(Blanks(i),
+             When(self.opts.arrayBufModifier <> "", self.opts.arrayBufModifier::" ", ""),
+                                 self.declare(v.t, v, i, is), ";\n"));
+
+             if (Length(other)>0) then
+	         other:=SortRecordList(other,x->x.t);
+	         for l in other do
+                     Sort(l, (a,b)->a.id < b.id);
+                     Print(Blanks(i),
+                           When(self.opts.arrayBufModifier <> "", self.opts.arrayBufModifier::" ", ""),
+		   	   self.declare(l[1].t, l, i, is), ";\n");										          od;																		fi;
+
+             self(o.cmd, i, is);
+
+	     end;
+
+
+
 
 Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
     getOpts := meth(self, t)
@@ -30,14 +51,14 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
 
                    opts.tags := self.tags::opts.tags;
                    opts.breakdownRules.TTensorI := [IxA_MPI, IxA_base, AxI_MPI, L_IxA_MPI, LL_IxA_MPI, fftx.platforms.cuda.L_IxA_SIMT, fftx.platforms.cuda.IxA_SIMT]::opts.breakdownRules.TTensorI;
-                   opts.breakdownRules.TTensorII := [batch_cuFFT_cuberot_3D];
+                   opts.breakdownRules.TTensorII := [batch_cuFFT_cuberot_3D, batch_cuFFT_cubenorot_3D];
                    opts.breakdownRules.TRC := [CopyFields(TRC_tag, rec(applicable := True))];
                    opts.breakdownRules.TPrm := [TPrm_MPI];
                    
 #                   opts.breakdownRules.MDDFT := When(Length(self.copts) > 0 and IsRec(self.copts[1]) and IsBound(self.copts[1].useCUFFT) and self.copts[1].useCUFFT, 
 #                       [ MDDFT_tSPL_pencil_cuFFT_MPI ], [ MDDFT_tSPL_pencil ]);
                    
-                   opts.includes := [ "\"fftx_mpi_int.h\"","\"mddft.h\"","\"device_macros.h\"" ];
+#                   opts.includes := [ "\"mddft.h\"","\"device_macros.h\"" ]; #"\"fftx_mpi_int.h\"",
                    opts.preProcess := (self, t) >> RulesMPIPromoteNT(t);
                    
                    opts.preProcess := t -> ApplyStrategy(t, 
@@ -56,6 +77,24 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
                    
                    opts.dynamicDeviceMemory := true;
 
+#		   opts.codegen.arrayDataModifier := "static";
+#		   opts.codegen.arrayBufModifier := "static";
+
+		   opts.arrayBufModifier := "static";
+		   opts.arrayDataModifier := "static";
+
+
+
+#		   arrayBufModifier := "static";
+#		   arrayDataModifier := "static";
+
+		   opts.unparser.data := (self,o,i,is) >> Print(
+		                                   When(not IsArrayT(o.var.t), Print("static", Blanks(i), self.genData(o.var, o.value))),
+ 			                            self(o.cmd, i, is));
+		   opts.unparser.decl := new_decl;				 
+<#				       
+#>
+
                    return opts;    
                end,
                    
@@ -66,7 +105,7 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
 
 Class(MPIGPUDeviceOpts, SpiralDefaults, rec(
     tags := [],
-    includes := [ "\"include/fftx_mpi_int.h\"" ],
+#    includes := [ "\"include/fftx_mpi_int.h\"" ],
     tagIt := (self, t) >> t.withTags(self.tags),
     operations := rec(Print := s -> Print("<MPI default options>")),
         
@@ -135,7 +174,7 @@ end;
 
 Class(MPIOpts, SpiralDefaults, rec(
     tags := [],
-    includes := [ "\"include/fftx_mpi_int.h\"" ],
+    includes := [ "\"fftx_mpi.hpp\"", "<stdint.h>" ],
     tagIt := (self, t) >> t.withTags(self.tags),
         operations := rec(Print := s -> Print("<MPI default options>")),
         

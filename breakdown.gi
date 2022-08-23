@@ -115,27 +115,49 @@ NewRulesFor(TTensorI, rec(
 ));
 
 NewRulesFor(TTensorII, rec(
-    batch_cuFFT_cuberot_3D := rec(
+
+batch_cuFFT_cuberot_3D := rec(
         info := "IxA base",
         forTransposition := false,
         applicable := nt -> nt.hasTags() and let(tg := nt.getTags()[1], IsBound(tg.isParMPI) and tg.isParMPI)
-#            and nt.params[3] = ACubeRot_ZXY and nt.params[4] = ACubeRot_XYZ
+            and nt.params[3]<>nt.params[4] #ACubeRot_ZXY and nt.params[4]=ACubeRot_XYZ
 	    and  ObjId(nt.params[1]) = DFT,
         children := nt -> [[ ]],
         apply := (nt, c, cnt) ->  let(
 				     #K := nt.params[1].params[1], k := nt.params[1].params[2], M := nt.params[2][1], N := nt.params[2][2],
 				     K := nt.params[2][2], k := nt.params[1].params[2], M := nt.params[2][1], N := nt.params[1].params[1],
                                      pg := nt.getTags()[1].params[1], p1 := pg[1], p2 := pg[2],
-				     instride:= 1,
-				     indist := N, #Product(nt.params[2]/Product(pg)), 				     
-				     outstride:= M*K/Product(pg), #nt.params[1].params[1],
+				     indist:= K,
+				     instride := 1, #M*K/Product(pg), 
+				     outstride:= M*K/Product(pg), 
 				     outdist := 1,
             MPITensor(
                 CUFFTCall(
-#                    Tensor(L(N*M/p1, M/p1), I(K/p2)) * Tensor(I(N), L(M*K/(p1*p2), M/p1)) * Tensor(I(p1*p2), DFT(K, k)), # this formula is only an approximation
-#                    TTensorII(nt.params[1], List([1..2], i-> nt.params[2][i]/nt.getTags()[1].params[1][i]), ACubeRot_ZXY, ACubeRot_XYZ),
                     TTensorII(nt.params[1], List([1..2], i-> nt.params[2][i]/nt.getTags()[1].params[1][i]), nt.params[3], nt.params[4]),
                     rec(K := K, M := M, N := N, p1 := p2, p2 := p2, k := k, instride := instride, outstride := outstride, indist := indist, outdist := outdist)), 
                 Product(pg)))
-    )
+   ),
+
+batch_cuFFT_cubenorot_3D := rec(
+        info := "IxA base",
+        forTransposition := false,
+        applicable := nt -> nt.hasTags() and let(tg := nt.getTags()[1], IsBound(tg.isParMPI) and tg.isParMPI)
+	    and nt.params[3]=nt.params[4]
+	    and  ObjId(nt.params[1]) = DFT,
+        children := nt -> [[ ]],
+        apply := (nt, c, cnt) ->  let(
+				     K := nt.params[2][2], k := nt.params[1].params[2], M := nt.params[2][1], N := nt.params[1].params[1],
+                                     pg := nt.getTags()[1].params[1], p1 := pg[1], p2 := pg[2],
+				     indist:= K,
+				     instride := 1, #M*K/Product(pg), ##Product(nt.params[2]/Product(pg)), #N
+				     outstride:= 1, #M*K/Product(pg), #nt.params[1].params[1],
+				     outdist := K,
+            MPITensor(
+                CUFFTCall(
+                    TTensorII(nt.params[1], List([1..2], i-> nt.params[2][i]/nt.getTags()[1].params[1][i]), nt.params[3], nt.params[4]),
+                    rec(K := K, M := M, N := N, p1 := p2, p2 := p2, k := k, instride := instride, outstride := outstride, indist := indist, outdist := outdist)), 
+                Product(pg)))
+   ),
+    
+
 ));
