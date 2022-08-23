@@ -57,8 +57,8 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
                    
 #                   opts.breakdownRules.MDDFT := When(Length(self.copts) > 0 and IsRec(self.copts[1]) and IsBound(self.copts[1].useCUFFT) and self.copts[1].useCUFFT, 
 #                       [ MDDFT_tSPL_pencil_cuFFT_MPI ], [ MDDFT_tSPL_pencil ]);
-                   
-#                   opts.includes := [ "\"mddft.h\"","\"device_macros.h\"" ]; #"\"fftx_mpi_int.h\"",
+
+	           opts.includes := [ "\"fftx_mpi.hpp\"", "<stdint.h>" ],
                    opts.preProcess := (self, t) >> RulesMPIPromoteNT(t);
                    
                    opts.preProcess := t -> ApplyStrategy(t, 
@@ -105,7 +105,7 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
 
 Class(MPIGPUDeviceOpts, SpiralDefaults, rec(
     tags := [],
-#    includes := [ "\"include/fftx_mpi_int.h\"" ],
+    includes := [ "\"fftx_mpi.hpp\"", "<stdint.h>" ],
     tagIt := (self, t) >> t.withTags(self.tags),
     operations := rec(Print := s -> Print("<MPI default options>")),
         
