@@ -20,9 +20,9 @@ Class(MPIDefaultConf, LocalConfig, rec(
     tags := []
 ));
 
-    new_decl := meth(self,o,i,is)
-            local arrays, other, l, arri, myMem;
-   	     [arrays, other] := SplitBy(o.vars, x->IsArray(x.t));
+new_decl := meth(self,o,i,is)
+       local arrays, other, l, arri, myMem;
+       [arrays, other] := SplitBy(o.vars, x->IsArray(x.t));
 	     DoForAll(arrays, v -> Print(Blanks(i),
              When(self.opts.arrayBufModifier <> "", self.opts.arrayBufModifier::" ", ""),
                                  self.declare(v.t, v, i, is), ";\n"));
@@ -33,7 +33,9 @@ Class(MPIDefaultConf, LocalConfig, rec(
                      Sort(l, (a,b)->a.id < b.id);
                      Print(Blanks(i),
                            When(self.opts.arrayBufModifier <> "", self.opts.arrayBufModifier::" ", ""),
-		   	   self.declare(l[1].t, l, i, is), ";\n");										          od;																		fi;
+		   	   self.declare(l[1].t, l, i, is), ";\n");
+		 od;
+             fi;
 
              self(o.cmd, i, is);
 
@@ -58,7 +60,7 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
 #                   opts.breakdownRules.MDDFT := When(Length(self.copts) > 0 and IsRec(self.copts[1]) and IsBound(self.copts[1].useCUFFT) and self.copts[1].useCUFFT, 
 #                       [ MDDFT_tSPL_pencil_cuFFT_MPI ], [ MDDFT_tSPL_pencil ]);
 
-	           opts.includes := [ "\"fftx_mpi.hpp\"", "<stdint.h>" ],
+	           opts.includes := [ "\"fftx_mpi.hpp\"", "<stdint.h>" ];
                    opts.preProcess := (self, t) >> RulesMPIPromoteNT(t);
                    
                    opts.preProcess := t -> ApplyStrategy(t, 
@@ -77,23 +79,20 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
                    
                    opts.dynamicDeviceMemory := true;
 
-#		   opts.codegen.arrayDataModifier := "static";
-#		   opts.codegen.arrayBufModifier := "static";
-
 		   opts.arrayBufModifier := "static";
 		   opts.arrayDataModifier := "static";
 
-
-
-#		   arrayBufModifier := "static";
-#		   arrayDataModifier := "static";
+		   opts.unparser := GPUUnparser;
 
 		   opts.unparser.data := (self,o,i,is) >> Print(
 		                                   When(not IsArrayT(o.var.t), Print("static", Blanks(i), self.genData(o.var, o.value))),
  			                            self(o.cmd, i, is));
-		   opts.unparser.decl := new_decl;				 
-<#				       
-#>
+		   opts.unparser.decl := new_decl;
+
+		   opts.codegen.CUFFTCall := (self, o, y, x, opts) >> simt_block(
+		       call(rec(id := "DEVICE_FFT_EXECZ2Z", codegen := o.codegen), o.codegen.plan_var,
+		                       tcast(TPtr(TSym("DEVICE_FFT_DOUBLECOMPLEX")), x), tcast(TPtr(TSym("DEVICE_FFT_DOUBLECOMPLEX")), y),
+				       When(o.codegen.k = 1, "DEVICE_FFT_INVERSE", "DEVICE_FFT_FORWARD")));
 
                    return opts;    
                end,
