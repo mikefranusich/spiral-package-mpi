@@ -74,7 +74,6 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
                    opts.sumsRuleTree := MPIGPUDeviceOpts.sumsRuleTree;
                    
                    opts.codegen.MPIRCPrm := MPICUDACodeGenMixin.MPIRCPrm;
-                   opts.unparser.mpi_rcperm := MPICUDAUnparserMixin.mpi_rcperm;
                    opts.sumsgen.MPITensor := MPISumsgenMixin.MPITensor;
                    
                    opts.dynamicDeviceMemory := true;
@@ -83,6 +82,7 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
 		   opts.arrayDataModifier := "static";
 
 		   opts.unparser := GPUUnparser;
+                   opts.unparser.mpi_rcperm := MPICUDAUnparserMixin.mpi_rcperm;
 
 		   opts.unparser.data := (self,o,i,is) >> Print(
 		                                   When(not IsArrayT(o.var.t), Print("static", Blanks(i), self.genData(o.var, o.value))),
