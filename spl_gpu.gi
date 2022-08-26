@@ -14,12 +14,12 @@ Class(CUFFTCall, BaseMat, SumsBase, rec(
                 plan_var := var.fresh_t("plan", TSym("DEVICE_FFT_HANDLE")),
                 size_var := var.fresh_t("size", TInt),
                 data := (self, c) >> data(self.size_var, V(self.N), c),
-                init := self >> let(  #Print("DFT ",self.K," X (",self.N," x ",self.M,")\n"),
+                init := self >> let(  
 		     call(rec(id:="DEVICE_FFT_PLAN_MANY"), addrof(self.plan_var), V(1), addrof(self.size_var),
 #  input params
-		     addrof(self.size_var),  V(self.instride), V(self.indist), #V((self.M * self.K) / (self.p1 * self.p2)), 
+		     addrof(self.size_var),  V(self.instride), V(self.indist), 
 #  output params
-  	             addrof(self.size_var), V(self.outstride), V(self.outdist), #V((self.M * self.K) / (self.p1 * self.p2)), V(self.outdist),#V(1),
+  	             addrof(self.size_var), V(self.outstride), V(self.outdist), 
 	             "DEVICE_FFT_Z2Z", V((self.M * self.K) / (self.p1 * self.p2)))),
             )),
             dimensions     := L.dims()))

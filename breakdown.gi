@@ -123,10 +123,10 @@ NewRulesFor(TTensorII, rec(
             and nt.params[3]<>nt.params[4] #ACubeRot_ZXY and nt.params[4]=ACubeRot_XYZ
 	    and  ObjId(nt.params[1]) = DFT,
         children := nt -> [[ ]],
-        apply := (nt, c, cnt) ->  let(
+        apply := (nt, c, cnt) ->  let( #Print("K: ", nt.params[2][2], "x", nt.params[2][1], "x", nt.params[1].params[1]," k ", nt.params[1].params[2]),
 				     K := nt.params[2][2], k := nt.params[1].params[2], M := nt.params[2][1], N := nt.params[1].params[1],
                                      pg := nt.getTags()[1].params[1], p1 := pg[1], p2 := pg[2],
-				     indist:= K,
+				     indist:= N,
 				     instride := 1, 
 				     outstride:= M*K/Product(pg), 
 				     outdist := 1,
@@ -145,13 +145,13 @@ NewRulesFor(TTensorII, rec(
 	    and nt.params[3]=nt.params[4]
 	    and  ObjId(nt.params[1]) = DFT,
         children := nt -> [[ ]],
-        apply := (nt, c, cnt) ->  let(
+        apply := (nt, c, cnt) ->  let( 
 				     K := nt.params[2][2], k := nt.params[1].params[2], M := nt.params[2][1], N := nt.params[1].params[1],
                                      pg := nt.getTags()[1].params[1], p1 := pg[1], p2 := pg[2],
 				     indist:= K,
 				     instride := 1, 
 				     outstride:= 1, 
-				     outdist := K,
+				     outdist := N,
             MPITensor(
                 CUFFTCall(
                     TTensorII(nt.params[1], List([1..2], i-> nt.params[2][i]/nt.getTags()[1].params[1][i]), nt.params[3], nt.params[4]),
