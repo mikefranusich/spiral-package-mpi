@@ -82,7 +82,7 @@ Class(MPIGPUDeviceConf, fftx.platforms.cuda.FFTXCUDADeviceOpts, rec(
 		   opts.arrayDataModifier := "static";
 
 		   opts.unparser := GPUUnparser;
-                   opts.unparser.mpi_rcperm := MPICUDAUnparserMixin.mpi_rcperm;
+                   opts.unparser.mpi_rcperm := MPICUDAUnparserMixin.mpi_rcperm;	
 
 		   opts.unparser.data := (self,o,i,is) >> Print(
 		                                   When(not IsArrayT(o.var.t), Print("static", Blanks(i), self.genData(o.var, o.value))),

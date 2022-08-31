@@ -13,6 +13,7 @@ Class(CUFFTCall, BaseMat, SumsBase, rec(
             codegen   := CopyFields(codegen, rec(
                 plan_var := var.fresh_t("plan", TSym("DEVICE_FFT_HANDLE")),
                 size_var := var.fresh_t("size", TInt),
+		size_req := (self) >> ((self.M * self.K * self.N) / (self.p1 * self.p2)),
                 data := (self, c) >> data(self.size_var, V(self.N), c),
                 init := self >> let(  
 		     call(rec(id:="DEVICE_FFT_PLAN_MANY"), addrof(self.plan_var), V(1), addrof(self.size_var),
