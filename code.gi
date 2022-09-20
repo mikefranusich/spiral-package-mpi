@@ -8,12 +8,12 @@ Class(MPICUDACodeGenMixin, rec(
 
 
 Class(MPICUDAUnparserMixin, rec(
-    mpi_rcperm := (self, o, i, is) >> Print(Blanks(i), "fftx_mpi_rcperm", self.pinfix(o.args, ", "), ";\n")  
+    mpi_rcperm := (self, o, i, is) >> Print(Blanks(i), "fftx_mpi_rcperm", self.pinfix(o.args{[1,2,4,7]}, ", "), ";\n")  
 ));
 
 
 FixUpMPICUDAPerm := function(c)
-    local mpicalls, mpinames, cucalls, mc, cc, ic;  
+    local mpicalls, mpinames, cucalls, mc, cc, ic, max_size, cualloc;  
 
     mpicalls := Collect(c, @(1, specifiers_func, e->IsBound(e.cmd.cmds) and ObjId(e.cmd.cmds[1]) in [call, mpi_rcperm]));
     mpinames := List(mpicalls, i->i.id);
@@ -41,6 +41,13 @@ FixUpMPICUDAPerm := function(c)
     c := program(decl(c.free(), c));
     c := SubstBottomUp(c, @(1, decl), 
         e -> decl(Filtered(@(1).val.vars, v -> v in @(1).val.cmd.free()), @(1).val.cmd));
-        
+
+
+    #This could be improved to reduce memory requirements
+    cualloc := Collect(c, cu_allocate);
+    max_size := Maximum(List(cc, _c -> _c.args[1].codegen.size_req())) * 2;
+    c:= SubstTopDown(c, @(1, cu_allocate), e->cu_allocate(@(1).val.loc, @(1).val.type, max_size));
+
+
     return c;    
 end;
